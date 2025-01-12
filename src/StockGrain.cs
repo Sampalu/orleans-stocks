@@ -1,4 +1,5 @@
 using Stocks.Interfaces;
+using System.Transactions;
 
 namespace Stocks.Grains;
 
@@ -15,7 +16,7 @@ public sealed class StockGrain : Grain, IStockGrain
         var stock = this.GetPrimaryKeyString();
         await UpdatePrice(stock);
 
-        RegisterTimer(
+        this.RegisterGrainTimer(
             UpdatePrice,
             stock,
             TimeSpan.FromMinutes(2),
