@@ -1,4 +1,3 @@
-using Orleans.Runtime;
 using Stocks;
 
 var builder = WebApplication.CreateBuilder();
