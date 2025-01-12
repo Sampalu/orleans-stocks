@@ -23,6 +23,10 @@ resource "aws_ecs_task_definition" "task_definition" {
       }
     }
   }])
+
+  depends_on = [ 
+    aws_iam_role.ecs_task_execution_role
+  ]
 }
 
 resource "aws_ecs_service" "ecs_service" {
@@ -36,6 +40,12 @@ resource "aws_ecs_service" "ecs_service" {
     subnets         = var.subnet_ids
     security_groups = [aws_security_group.ecs_service_sg.id]
   }
+
+  depends_on = [ 
+    aws_ecs_cluster.ecs_cluster,
+    aws_ecs_task_definition.task_definition,
+    aws_security_group.ecs_service_sg
+  ]
 }
 
 resource "aws_security_group" "ecs_service_sg" {
@@ -77,4 +87,8 @@ resource "aws_iam_policy_attachment" "ecs_task_execution_policy" {
   name       = "ecs-task-execution-policy"
   roles      = [aws_iam_role.ecs_task_execution_role.name]
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+
+  depends_on = [ 
+    aws_iam_role.ecs_task_execution_role
+  ]
 }

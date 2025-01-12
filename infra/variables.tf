@@ -6,7 +6,7 @@ variable "vpc_id" {}
 
 variable "subnet_ids" {
   type = list(string)
-  default = [ "subnet-1bfe087d", "subnet-1bfe087d", "subnet-5062e41d" ]
+  default = [ "subnet-01ee83d367e17dbf4", "subnet-03e19f74abd507b77" ]
 }
 
 variable "ecr_image" {}
