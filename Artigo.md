@@ -1,1 +1,8 @@
+# Por que utilizar o Microsoft Orleans
+
+## Introdução
+
+Quando temos uma API, atrás de um balanceador de carga, é possível ter diversas tarefas (**ECS tasks**) de um determinado serviço, em um *cluster* (**ECS cluster**), numa conta da **AWS**, e assim, podemos ter alta disponibilidade e escalabilidade. Outros cenários podem ser resolvidos através de utilização de **Lambda Functions**. No entanto, se tivermos um serviço do tipo *worker*, em **C#**, baseado no [BackgroundService](https://learn.microsoft.com/pt-br/dotnet/core/extensions/windows-service), que realiza determinado processamento em um intervalo de tempo, como podemos ter alta disponibilidade e escalabilidade? Se definirmos, por exemplo, 2 tarefas, na tentativa de resolver essas questões, os processamentos poderão ocorrer em duplicidade. Se criamos um mecanismo, onde mesmo que o processamento ocorra em duplicidade, o resultado não seja duplicado, não estaremos sendo eficiente no que se refere a custos e não será possível escalar horizontalmente, porque não importa a quantidade de tarefas, todas sempre vão ter a mesma carga de processamento. Se criarmos algum mecanismo para que apenas uma das tarefas realize os processamentos enquanto a outra fique em *stand by*, caso a primeira tarefa fique indisponível por qualquer motivo, de novo, vamos gastar o dobro que seria necessário, além disso não será possível escalar horizontalmente.
+
+Este é um dos cenários onde o **Microsoft Orleans** se mostra necessário, com esse framework é possível ter diversas instâncias de um mesmo serviço, com processamentos únicos, onde essas instâncias distribuem a carga entre si, tendo assim, uma aplicação com alta disponibilidade e escalabilidade.
 
