@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 resource "aws_ecs_cluster" "ecs_cluster" {
   name = "ecs-fargate-cluster"
 }
@@ -39,6 +41,7 @@ resource "aws_ecs_service" "ecs_service" {
   network_configuration {
     subnets         = var.subnet_ids
     security_groups = [aws_security_group.ecs_service_sg.id]
+    assign_public_ip = true
   }
 
   depends_on = [ 
@@ -54,9 +57,9 @@ resource "aws_security_group" "ecs_service_sg" {
   vpc_id      = var.vpc_id
 
   ingress {
-    from_port   = 8080
-    to_port     = 8081
-    protocol    = "tcp"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -66,6 +69,32 @@ resource "aws_security_group" "ecs_service_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
+
+resource "aws_iam_policy" "elasticache_policy" {
+  name        = "ElasticacheAccessPolicy"
+  description = "Allow access to ElastiCache resources"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid: "VisualEditor0",
+        Effect: "Allow",
+        Action: "elasticache:*",
+        Resource: "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy_attachment" "elasticache_policy_attachment" {
+  name       = "elasticache-policy-attachment"
+  roles      = [aws_iam_role.ecs_task_execution_role.name]
+  policy_arn = aws_iam_policy.elasticache_policy.arn
+
+  depends_on = [
+    aws_iam_policy.elasticache_policy,
+    aws_iam_role.ecs_task_execution_role]
 }
 
 resource "aws_iam_role" "ecs_task_execution_role" {
