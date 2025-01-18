@@ -6,3 +6,10 @@ Quando temos uma API, atrás de um balanceador de carga, é possível ter divers
 
 Este é um dos cenários onde o **Microsoft Orleans** se mostra necessário, com esse framework é possível ter diversas instâncias de um mesmo serviço, com processamentos únicos, onde essas instâncias distribuem a carga entre si, tendo assim, uma aplicação com alta disponibilidade e escalabilidade.
 
+## O que é Microsoft Orleans?
+
+O **Microsoft Orleans** é um framework projetado para simplificar a construção de sistemas distribuídos e escaláveis, sendo especialmente útil para aplicações que precisam lidar com alta concorrência e gerenciar estado de forma eficiente. Baseado no modelo de ator virtual, o Orleans introduz o conceito de "grãos" (*grains*), que são unidades de lógica e estado, permitindo que os desenvolvedores criem aplicações distribuídas sem se preocupar diretamente com a complexidade de sincronização, localização de recursos e concorrência.
+Entre seus principais benefícios estão a escalabilidade horizontal transparente, o balanceamento dinâmico de carga e a integração com persistência de estado, o que facilita o desenvolvimento de sistemas resilientes e de alta performance. Além disso, o **Orleans** utiliza conceitos familiares da [Programação Orientada a Objetos](https://learn.microsoft.com/pt-br/dotnet/csharp/fundamentals/tutorials/oop) (POO), tornando-se acessível mesmo para quem não possui experiência prévia com sistemas distribuídos.
+
+Com aplicações em jogos *online*, processamento em tempo real, sistemas *IoT* e muito mais, o **Microsoft Orleans** é uma ferramenta poderosa para quem busca criar sistemas robustos sem "reinventar a roda". Essa abordagem tem atraído desenvolvedores que buscam simplicidade e produtividade, oferecendo uma alternativa moderna e eficiente para resolver desafios complexos de distribuição e escalabilidade.
+
