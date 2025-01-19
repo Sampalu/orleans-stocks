@@ -8,8 +8,36 @@ Este é um dos cenários onde o **Microsoft Orleans** se mostra necessário, com
 
 ## O que é Microsoft Orleans?
 
-O **Microsoft Orleans** é um framework projetado para simplificar a construção de sistemas distribuídos e escaláveis, sendo especialmente útil para aplicações que precisam lidar com alta concorrência e gerenciar estado de forma eficiente. Baseado no modelo de ator virtual, o Orleans introduz o conceito de "grãos" (*grains*), que são unidades de lógica e estado, permitindo que os desenvolvedores criem aplicações distribuídas sem se preocupar diretamente com a complexidade de sincronização, localização de recursos e concorrência.
+O **Microsoft Orleans** é um *framework* projetado para simplificar a construção de sistemas distribuídos e escaláveis, sendo especialmente útil para aplicações que precisam lidar com alta concorrência e gerenciar estado de forma eficiente. Baseado no modelo de ator virtual, o Orleans introduz o conceito de "grãos" (*grains*), que são unidades de lógica e estado, permitindo que os desenvolvedores criem aplicações distribuídas sem se preocupar diretamente com a complexidade de sincronização, localização de recursos e concorrência.
+
 Entre seus principais benefícios estão a escalabilidade horizontal transparente, o balanceamento dinâmico de carga e a integração com persistência de estado, o que facilita o desenvolvimento de sistemas resilientes e de alta performance. Além disso, o **Orleans** utiliza conceitos familiares da <a href="https://learn.microsoft.com/pt-br/dotnet/csharp/fundamentals/tutorials/oop" target="_blank">Programação Orientada a Objetos</a> (POO), tornando-se acessível mesmo para quem não possui experiência prévia com sistemas distribuídos.
 
 Com aplicações em jogos *online*, processamento em tempo real, sistemas *IoT* e muito mais, o **Microsoft Orleans** é uma ferramenta poderosa para quem busca criar sistemas robustos sem "reinventar a roda". Essa abordagem tem atraído desenvolvedores que buscam simplicidade e produtividade, oferecendo uma alternativa moderna e eficiente para resolver desafios complexos de distribuição e escalabilidade.
+
+## Criação do Microsoft Orleans
+
+O **Microsoft Orleans** foi criado para atender às necessidades específicas da Microsoft na construção de sistemas distribuídos para aplicações massivamente escaláveis, como jogos online e serviços de *backend* em larga escala. Ele surgiu como uma resposta aos desafios enfrentados ao usar abordagens tradicionais de sistemas distribuídos, que muitas vezes exigem soluções customizadas e complexas para lidar com problemas de concorrência, estado distribuído e escalabilidade.
+
+A principal inspiração por trás do **Orleans** foi o modelo de ator, um paradigma de computação distribuída em que "atores" representam unidades independentes de lógica e estado que se comunicam entre si por meio de mensagens assíncronas. Este modelo, inicialmente popularizado por *frameworks* como o *Erlang*, provou ser uma solução eficaz para sistemas distribuídos, mas a equipe do Orleans o adaptou para simplificar ainda mais o desenvolvimento, criando o conceito de ator virtual.
+
+No **Orleans**, os atores são chamados de grãos (*grains*), e seu modelo elimina a necessidade de os desenvolvedores gerenciarem manualmente a ativação, a localização e a concorrência entre os atores. Cada grão é ativado automaticamente sob demanda, com seu estado gerenciado de forma transparente, enquanto o *runtime* do **Orleans** cuida de detalhes como distribuição, persistência e balanceamento de carga. Isso reduz drasticamente a complexidade do desenvolvimento e oferece uma abordagem mais acessível para criar sistemas distribuídos em larga escala.
+
+Essa abordagem foi testada e refinada em aplicações de alta performance, como o backend do jogo ***Halo***, demonstrando sua eficácia no gerenciamento de milhões de jogadores simultâneos.
+
+## Grãos e Silos
+
+No **Microsoft Orleans**, grãos e silos são conceitos fundamentais que estruturam a arquitetura do framework para lidar com sistemas distribuídos. Aqui está uma explicação de cada um:
+
+### Grãos (*Grains*):
+
+Os grãos são as unidades fundamentais de lógica e estado no **Orleans**, representando "atores virtuais". Eles são objetos que encapsulam tanto o comportamento quanto o estado da aplicação, funcionando de forma independente.
+
+### Silos:
+
+Os silos são os contêineres que hospedam os grãos, proporcionando o ambiente necessário para que eles funcionem. Pense neles como os "nós" físicos ou virtuais que compõem a infraestrutura de um sistema **Orleans**.
+
+### Relação entre Grãos e Silos:
+
+Os grãos vivem dentro dos silos. Quando um grão precisa ser chamado, o silo cuida de ativá-lo e de armazenar seu estado em memória ou persistência. Vários silos podem trabalhar juntos para distribuir a carga de trabalho e garantir a alta disponibilidade e a escalabilidade do sistema.
+
 
