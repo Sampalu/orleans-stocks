@@ -71,27 +71,45 @@ Os grãos vivem dentro dos silos. Quando um grão precisa ser chamado, o silo cu
 
 Na parte final deste artigo aplicaremos o **MS Orleans** numa aplicação funcional.
 
-Ciclo de vida do grão
+### Ciclo de vida do grão
+
+![Ciclo de vida do grão, desde sua ativação até a desativação](./img/grain-lifecycle.svg "Ciclo de vida do grão, desde sua ativação até a desativação")
  
-Decrever a imagem
-Esta imagem ilustra o ciclo de vida de um grão no Microsoft Orleans. Cada grão pode passar por diferentes estados ao longo de sua existência no sistema. Aqui está a explicação dos estados e transições representados:
-1.	Activating (Ativando):
-o	Quando um grão é acessado pela primeira vez ou quando precisa ser usado novamente, ele entra no estado de ativação.
-o	Durante este estado, o Orleans inicializa o grão, carregando-o na memória e restaurando seu estado persistente (se necessário).
-2.	Active in Memory (Ativo na Memória):
-o	Após a ativação, o grão fica ativo na memória.
-o	Neste estado, o grão está pronto para processar solicitações de outros grãos ou de clientes.
-o	Ele permanece neste estado enquanto for necessário ou até que se torne inativo.
-3.	Deactivating (Desativando):
-o	Quando o grão não é mais necessário, o Orleans inicia o processo de desativação.
-o	Durante este estado, o framework pode persistir o estado do grão (se for configurado para isso) antes de removê-lo da memória.
-4.	Persisted (Persistido):
-o	Após a desativação, o estado do grão pode ser salvo em um armazenamento persistente (por exemplo, um banco de dados ou armazenamento em nuvem).
-o	O grão permanece persistido até que seja necessário novamente.
+Esta imagem ilustra o ciclo de vida de um grão no **Microsoft Orleans**. Cada grão pode passar por diferentes estados ao longo de sua existência no sistema. Aqui está a explicação dos estados e transições representados:
+
+<ol>
+  <li><b><i>Activating</i> (Ativando):</b>
+   <ul>
+      <li><p>Quando um grão é acessado pela primeira vez ou quando precisa ser usado novamente, ele entra no estado de ativação.</p></li>
+      <li><p>Durante este estado, o **Orleans** inicializa o grão, carregando-o na memória e restaurando seu estado persistente (se necessário).</p></li>
+    </ul>
+  </li>
+  <li><b><i>Active in Memory</i> (Ativo na Memória):</b>
+  <ul>
+      <li><p>Após a ativação, o grão fica carregado na memória.</p></li>
+      <li><p>Neste estado, o grão está pronto para processar solicitações de outros grãos ou de clientes.</p></li>
+      <li><p>Ele permanece neste estado enquanto for necessário ou até que se torne inativo.</p></li>
+    </ul>
+  </li>
+  <li><b><i>Deactivating</i> (Desativando):</b>
+    <ul>
+      <li><p>Quando o grão não é mais necessário, o **Orleans** inicia o processo de desativação.</p></li>
+      <li><p>Durante este estado, o *framework* pode persistir o estado do grão (se for configurado para isso) antes de removê-lo da memória.</p></li>
+    </ul>
+  </li>
+  <li><b><i>Persisted</i> (Persistido):</b>
+    <ul>
+       <li><p>Após a desativação, o estado do grão pode ser salvo em um armazenamento persistente (por exemplo, um banco de dados ou armazenamento em nuvem).</p></li>
+       <li><p>O grão permanece persistido até que seja necessário novamente.</p></li>
+    </ul>
+  </li>
+</ol>
+
 Fluxo Geral:
 •	Um grão passa por "Activating" → "Active in Memory" quando é necessário.
 •	Quando o grão não está mais ativo, ele passa por "Deactivating" → "Persisted".
 •	Se o grão persistido for requisitado novamente, ele retorna ao ciclo de ativação.
+
 ________________________________________
 Objetivo do Ciclo de Vida:
 Esse ciclo permite que o Orleans gerencie recursos de forma eficiente em um sistema distribuído. Ele garante que:
