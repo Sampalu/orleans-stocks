@@ -105,17 +105,32 @@ Esta imagem ilustra o ciclo de vida de um grão no **Microsoft Orleans**. Cada g
   </li>
 </ol>
 
-Fluxo Geral:
-•	Um grão passa por "Activating" → "Active in Memory" quando é necessário.
-•	Quando o grão não está mais ativo, ele passa por "Deactivating" → "Persisted".
-•	Se o grão persistido for requisitado novamente, ele retorna ao ciclo de ativação.
+#### Fluxo Geral:
 
-________________________________________
-Objetivo do Ciclo de Vida:
-Esse ciclo permite que o Orleans gerencie recursos de forma eficiente em um sistema distribuído. Ele garante que:
-•	Grãos inativos não consumam memória.
-•	O estado do grão possa ser restaurado sempre que necessário.
-•	O sistema possa escalar dinamicamente, ativando e desativando grãos conforme a demanda.
-Essa abordagem baseada no ciclo de vida automatiza o gerenciamento de estado e memória, facilitando a criação de aplicações distribuídas escaláveis e resilientes.
+- Um grão passa por ***"Activating"*** → ***"Active in Memory"*** quando é necessário.
+
+- Quando o grão não está mais ativo, ele passa por "Deactivating" → "Persisted".
+
+-	Se o grão persistido for requisitado novamente, ele retorna ao ciclo de ativação.
+
+<br>
+
+> #### Objetivo do Ciclo de Vida:
+> Esse ciclo permite que o Orleans gerencie recursos de forma eficiente em um sistema distribuído. Ele garante que:
+> 
+> -	Grãos inativos não consumam memória.
+>   
+> - O estado do grão possa ser restaurado sempre que necessário.
+>   
+> - O sistema possa escalar dinamicamente, ativando e desativando grãos conforme a demanda.
+> 
+> Essa abordagem baseada no ciclo de vida automatiza o gerenciamento de estado e memória, facilitando a criação de aplicações distribuídas escaláveis e resilientes.
+
+
+## Exemplo Prático
+
+
+
+
 
 
