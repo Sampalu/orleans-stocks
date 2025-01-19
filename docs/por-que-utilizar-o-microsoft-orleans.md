@@ -61,7 +61,7 @@ Os silos são os contêineres que hospedam os grãos, proporcionando o ambiente 
 
 Os grãos vivem dentro dos silos. Quando um grão precisa ser chamado, o silo cuida de ativá-lo e de armazenar seu estado em memória ou persistência. Vários silos podem trabalhar juntos para distribuir a carga de trabalho e garantir a alta disponibilidade e a escalabilidade do sistema.
 
-![Cluster com silos e grãos](/img/cluster-silo-grain-relationship.svg "Cluster com silos e grãos")
+![Cluster com silos (hosts) e grãos](./img/cluster-silo-grain-relationship.svg "Cluster com silos (hosts) e grãos")
 
 #### Exemplo Simples:
 
@@ -69,4 +69,35 @@ Os grãos vivem dentro dos silos. Quando um grão precisa ser chamado, o silo cu
 
 •	**Silo:** O servidor ou cluster de servidores onde esses grãos são hospedados e gerenciados.
 
-No final deste artigo aplicaremos o **MS Orleans** numa aplicação funcional.
+Na parte final deste artigo aplicaremos o **MS Orleans** numa aplicação funcional.
+
+Ciclo de vida do grão
+ 
+Decrever a imagem
+Esta imagem ilustra o ciclo de vida de um grão no Microsoft Orleans. Cada grão pode passar por diferentes estados ao longo de sua existência no sistema. Aqui está a explicação dos estados e transições representados:
+1.	Activating (Ativando):
+o	Quando um grão é acessado pela primeira vez ou quando precisa ser usado novamente, ele entra no estado de ativação.
+o	Durante este estado, o Orleans inicializa o grão, carregando-o na memória e restaurando seu estado persistente (se necessário).
+2.	Active in Memory (Ativo na Memória):
+o	Após a ativação, o grão fica ativo na memória.
+o	Neste estado, o grão está pronto para processar solicitações de outros grãos ou de clientes.
+o	Ele permanece neste estado enquanto for necessário ou até que se torne inativo.
+3.	Deactivating (Desativando):
+o	Quando o grão não é mais necessário, o Orleans inicia o processo de desativação.
+o	Durante este estado, o framework pode persistir o estado do grão (se for configurado para isso) antes de removê-lo da memória.
+4.	Persisted (Persistido):
+o	Após a desativação, o estado do grão pode ser salvo em um armazenamento persistente (por exemplo, um banco de dados ou armazenamento em nuvem).
+o	O grão permanece persistido até que seja necessário novamente.
+Fluxo Geral:
+•	Um grão passa por "Activating" → "Active in Memory" quando é necessário.
+•	Quando o grão não está mais ativo, ele passa por "Deactivating" → "Persisted".
+•	Se o grão persistido for requisitado novamente, ele retorna ao ciclo de ativação.
+________________________________________
+Objetivo do Ciclo de Vida:
+Esse ciclo permite que o Orleans gerencie recursos de forma eficiente em um sistema distribuído. Ele garante que:
+•	Grãos inativos não consumam memória.
+•	O estado do grão possa ser restaurado sempre que necessário.
+•	O sistema possa escalar dinamicamente, ativando e desativando grãos conforme a demanda.
+Essa abordagem baseada no ciclo de vida automatiza o gerenciamento de estado e memória, facilitando a criação de aplicações distribuídas escaláveis e resilientes.
+
+
