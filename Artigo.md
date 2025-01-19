@@ -32,12 +32,43 @@ No **Microsoft Orleans**, grãos e silos são conceitos fundamentais que estrutu
 
 Os grãos são as unidades fundamentais de lógica e estado no **Orleans**, representando "atores virtuais". Eles são objetos que encapsulam tanto o comportamento quanto o estado da aplicação, funcionando de forma independente.
 
+> #### Principais características dos Grãos:
+>
+> - **Ator Virtual:** Diferente do modelo tradicional de ator, os grãos não têm uma instância fixa em memória. Eles são ativados automaticamente sob demanda e podem ser descarregados quando inativos.
+>   
+> - **Estado Persistente:** Podem armazenar seu estado em repositórios persistentes, como bancos de dados, sem que o desenvolvedor precise gerenciar isso manualmente.
+>   
+> - **Comunicação Assíncrona:** Os grãos se comunicam entre si usando mensagens assíncronas, o que facilita a criação de sistemas distribuídos que escalam de forma transparente.
+>   
+> - **Exemplo de uso:** Em um jogo multiplayer, um grão pode representar uma entidade como um jogador, um item ou uma sala de jogo, com cada um deles gerenciando seu próprio estado e lógica.
+>   
+
 ### Silos:
 
 Os silos são os contêineres que hospedam os grãos, proporcionando o ambiente necessário para que eles funcionem. Pense neles como os "nós" físicos ou virtuais que compõem a infraestrutura de um sistema **Orleans**.
 
+> #### Principais características do Silos: 
+>
+> - **Execução Distribuída:** Cada silo executa grãos e cuida da comunicação entre grãos localizados em diferentes silos.
+>   
+> - **Escalabilidade:** Novos silos podem ser adicionados dinamicamente para expandir o sistema, permitindo que ele escale horizontalmente.
+>
+> - **Gerenciamento de Grãos:** Os silos são responsáveis por ativar, desativar e localizar grãos conforme necessário.
+>
+>  - **Resiliência:** Silos interagem para garantir que falhas em um nó não comprometam o sistema como um todo.
+
 ### Relação entre Grãos e Silos:
 
 Os grãos vivem dentro dos silos. Quando um grão precisa ser chamado, o silo cuida de ativá-lo e de armazenar seu estado em memória ou persistência. Vários silos podem trabalhar juntos para distribuir a carga de trabalho e garantir a alta disponibilidade e a escalabilidade do sistema.
+
+
+
+#### Exemplo Simples:
+
+•	**Grão:** Em uma aplicação de gerenciamento de pedidos, um grão pode representar um pedido específico, contendo detalhes como itens, status e histórico.
+
+•	**Silo:** O servidor ou cluster de servidores onde esses grãos são hospedados e gerenciados.
+
+No final deste artigo aplicaremos o **MS Orleans** numa aplicação funcional.
 
 
