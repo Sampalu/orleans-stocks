@@ -61,7 +61,7 @@ Os silos são os contêineres que hospedam os grãos, proporcionando o ambiente 
 
 Os grãos vivem dentro dos silos. Quando um grão precisa ser chamado, o silo cuida de ativá-lo e de armazenar seu estado em memória ou persistência. Vários silos podem trabalhar juntos para distribuir a carga de trabalho e garantir a alta disponibilidade e a escalabilidade do sistema.
 
-
+![Cluster com silos e grãos](/img/cluster-silo-grain-relationship.svg "Cluster com silos e grãos")
 
 #### Exemplo Simples:
 
