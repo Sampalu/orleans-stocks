@@ -295,27 +295,166 @@ public sealed class StocksHostedService : BackgroundService
 }
 ```
 
-Configurar os silos
+### Configurar os silos
+
 Os silos responsáveis por armazenar e gerenciar granularidades. Um silo pode conter uma ou mais grãos. 
-O código a seguir usa uma classe ISiloBuilder para criar um cluster localhost. Este cenário usa recursos locais para desenvolvimento, mas um aplicativo de produção pode ser configurado para usar clusters e armazenamento altamente escaláveis. 
-Nota: Quando configuramos a execução da aplicação em vários silos, ou seja, vários hosts, a comunicação com os grãos ocorre como se todos estivessem disponíveis em um único processo.
 
-Abra o arquivo Program.cs e substitua o conteúdo existente pelo seguinte código:
+O código a seguir usa uma classe ***ISiloBuilder*** para criar um *cluster localhost*. Este cenário usa recursos locais para desenvolvimento, mas um aplicativo de produção pode ser configurado para usar clusters e armazenamento altamente escaláveis. Veremos mais adiante.
+
+> Quando configuramos a execução da aplicação em vários silos, ou seja, vários hosts, a comunicação com os grãos ocorre como se todos estivessem disponíveis em um único processo.
+
+Abra o arquivo *Program.cs* e substitua o conteúdo existente pelo seguinte código:
+
+```csharp
+using Stocks;
+
+var builder = WebApplication.CreateBuilder();
+
+builder.Host
+    .UseOrleans(siloBuilder =>
+    {
+        siloBuilder.UseLocalhostClustering();
+        siloBuilder.UseDashboard(options => { options.Port = 8081; });
+    })
+    .ConfigureServices(
+        services => services.AddHostedService<StocksHostedService>());
+
+var app = builder.Build();
+
+app.MapGet("/", () => "Welcome to the Stock Sample, powered by Orleans!");
+
+app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
+
+app.Run();
+```
+
+### Teste o aplicativo localmente
+
+A funcionalidade principal do aplicativo agora está completa e pronta para ser testada localmente.
+
+Ao executar a aplicação localmente, abrirá um console, conforme mostrado abaixo:
+
+![Console](./img/screenshot.png "Console")
+
+Abra o navegador e acesse o endereço <a href="http://localhost:8081" target="_blank">http://localhost:8081</a>. Você terá um **Dashboard**, registrado através do trecho a seguir, na classe Program.cs.
+```csharp
+siloBuilder.UseDashboard(options => { options.Port = 8081; }); 
+```
+No **Dashboard** é possível monitorar o uso da CPU, Memória, uso do Grãos, Requisições por segundo, etc.
+
+![Dashboard](./img/localhost8081-dashboard.png "Dashboard")
+
+Abra o navegador e acesse o endereço <a href="http://localhost:8080/health" target="_blank">http://localhost:8080/health</a>. Você terá um ***HealthCheck***, que utilizaremos para monitorar a saúde do silo:
+
+![HealthCheck](./img/localhost8080-healthcheck.png "HealthCheck")
+
+Link para o repositório do projeto: <a href="https://github.com/Sampalu/orleans-stocks/tree/configuracao-localhost-teste" target="_blank">https://github.com/Sampalu/orleans-stocks/tree/configuracao-localhost-teste</a>
+
+[Conclusão primeira parte]
+
+<br><br>
+## Como utilizar o Microsoft Orleans na AWS
+
+A seguir, apresento a configuração utilizada para publicar a aplicação numa conta **AWS**.
+
+**Pré-requisitos**
+-	Docker
+-	Terraform
+-	Conta na AWS com Redis configurado
 
 
+> Vamos utilizar a mesma aplicação criada na primeira parte do artigo, disponível neste repositório <a href="https://github.com/Sampalu/orleans-stocks/tree/configuracao-localhost-teste" target="_blank">https://github.com/Sampalu/orleans-stocks/tree/configuracao-localhost-teste</a>. 
+
+### Execução local com Docker
+
+Para preparar a aplicação para ser executada na **AWS**, vamos criar um *Dockefile* e testar localmente mais uma vez.
+
+**Compile e teste localmente com Docker**
+
+1. Adicionar o Dockerfile na raiz do projeto.
+```dockerfile
+# Etapa 1: Build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /source
+
+# Copiar os arquivos do projeto para o container
+COPY . .
+
+# Restaurar dependências e compilar
+RUN dotnet restore
+RUN dotnet publish -c Release -o /app
+
+# Etapa 2: Runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+WORKDIR /app
+
+# Copiar os binários compilados para o runtime
+COPY --from=build /app .
+
+EXPOSE 8081
+
+# Definir o ponto de entrada
+ENTRYPOINT ["dotnet", "Stocks.dll"]
+```
+2. Compile sua aplicação.
+3.	Use os comandos para criar a imagem <a href="https://www.docker.com/" target="_blank">Docker</a>
+```bash
+docker build -t stocks-local .
+```
+```bash
+docker run -d -p 8080:8080 -p 8081:8081 stocks-local
+```
+4.	Abra o navegador e acesse o Dashboard: <a href="http://localhost:8081" target="_blank">http://localhost:8081</a>
+5.	Abra o navegador e acesse o endereço HealthCheck: <a href="http://localhost:8080/health" target="_blank">http://localhost:8080/health</a>
 
 
+### Configuração para publicar na AWS
 
-Configurar os silos
+Para a aplicação ser executada na **AWS**, é necessário alterar a configuração do Silo, no nosso caso, vamos utilizar o <a href="https://redis.io/try-free/" target="_blank">Redis<a/> para que o **Orleans** gerencie os Grãos e Silos. Essa configuração é adequada para um ambiente de contêiner, como <a href="https://www.docker.com/" target="_blank">Docker</a> ou AWS ECS, onde os silos precisam ser configurados dinamicamente e o ***Redis*** atua como a camada de coordenação.
+
+### Configuração dos Silos
+
+No arquivo *Program.cs*, vamos precisar configurar os Silos adequadamente.
+
+#### Opções de Cluster
+
+A primeira coisa que vamos fazer é remover siloBuilder.UseLocalhostClustering();, porque essa configuração é utilizada apenas em ambiente local. Vamos incluir ClusterOptions:
+ 
+ClusterId: Identifica o cluster Orleans. Todos os silos com o mesmo ClusterId fazem parte do mesmo cluster.
+ServiceId: Representa o serviço lógico que está sendo executado. Isso é útil para distinguir múltiplas implementações do mesmo sistema.
+
+#### Configuração de Clustering com Redis
+
+O Orleans usa Redis como provedor de clustering, que é responsável por coordenar e registrar os silos no cluster.
+
+Adicione o pacote Microsoft.Orleans.Clustering.Redis ao aplicativo e altere a configuração para corresponder a string de conexão do Redis da sua conta AWS.
+
+#### Configuração de Endpoints
+
+AdvertisedIPAddress: Define o endereço IP que outros silos e clientes usarão para se conectar a este nó. Ele usa o endereço IP do contêiner.
+Configuração de Portas:
+•	A porta do Silo (comunicação entre silos) e do Gateway (comunicação entre cliente e silo) são atribuídas dinamicamente dentro de intervalos.
+
+•	Isso é útil em ambientes como Docker ou AWS ECS, onde múltiplos contêineres compartilham a mesma máquina.
+GatewayListeningEndpoint e SiloListeningEndpoint: Configuram os pontos de escuta dos silos.
 
 
+Veja o *Program.cs* completo:
 
+```csharp
 
-https://redis.io/try-free/
+```
 
+### Compile e publique a imagem em um registro de contêiner (ECR)
+
+[Conclusão segunda parte]
 
 
 
 ```csharp
 
 ```
+```bash
+
+```
+![texto](./img/g "texto")
