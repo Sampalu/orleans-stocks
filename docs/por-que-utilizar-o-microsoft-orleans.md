@@ -128,12 +128,50 @@ Esta imagem ilustra o ciclo de vida de um grão no **Microsoft Orleans**. Cada g
 > 
 > Essa abordagem baseada no ciclo de vida automatiza o gerenciamento de estado e memória, facilitando a criação de aplicações distribuídas escaláveis e resilientes.
 
+<br>
 
-## Exemplo Prático
+## Crie seu primeiro aplicativo Orleans com o ASP.NET Core
+
+Vamos construir uma aplicação que busca preços de ações de um serviço remoto usando o <a href="https://learn.microsoft.com/pt-br/dotnet/api/system.net.http.httpclient?view=net-8.0" target="_blank">HttpClient</a>, armazena-os em cache em um grão e os exibe na tela.
+
+É um projeto baseado no exemplo da Microsoft, porem com algumas alterações, disponível no repositório: <a href="https://github.com/dotnet/samples/tree/main/orleans/Stocks">https://github.com/dotnet/samples/tree/main/orleans/Stocks</a>
+
+**Pré-requisitos**
+- SDK .NET 8.0
+- Visual Studio 2022
 
 
+### Criar o aplicativo
 
-http client https://learn.microsoft.com/pt-br/dotnet/api/system.net.http.httpclient?view=net-8.0
+1.	Inicie o **Visual Studio 2022** e selecione **Criar um novo projeto**.
+
+2.	Na caixa de diálogo **Criar um novo projeto**, selecione ***API Web do ASP.NET Core***, em seguida, selecione **Avançar**.
+
+3.	Na caixa de diálogo **Configurar novo projeto**, digite **Stocks** como Nome do projeto e selecione em **Avançar**.
+
+4.	Na caixa de diálogo **Informações adicionais**, selecione **.NET 8.0** e desmarque **Usar controladores** e, em seguida, selecione **Criar**.
+
+> Em algumas documentações você pode encontrar exemplos onde há um Server e um Client, nós vamos construir uma aplicação onde não vamos precisar do Client, vamos criar apenas o Server.
+
+
+### Adicionar Orleans ao projeto
+
+O Orleans está disponível por meio de uma coleção de pacotes NuGet e cada um deles fornece acesso a vários recursos. Neste projeto, adicione os pacotes Microsoft.Orleans.Server e OrleansDashboard ao aplicativo:
+
+1.	Clique com o botão direito do mouse no nó do projeto Stocks no gerenciador de soluções e selecione Gerenciar Pacotes NuGet.
+
+2.	Na janela do gerenciador de pacotes, pesquise Orleans.
+
+3.	Escolha os pacotes Microsoft.Orleans.Server e OrleansDashboard, ambos na versão 8.2.0, nos resultados da pesquisa e selecione Instalar.
+
+
+### Criar o Grão
+
+Grãos são os blocos de construção primitivos mais essenciais de aplicativos do Orleans. Uma granularidade é uma classe que herda da classe base Grain, que gerencia vários comportamentos internos e pontos de integração com Orleans. As granularidades devem implementar uma interface para definir o tipo de identificador da chave de granularidade.
+
+No nosso caso vamos usar o IGrainWithStringKey. As granularidades do Orleans também podem usar uma interface personalizada para definir seus métodos e propriedades. Nesta interface, vamos precisar apenas de um método, o GetPrice(), que usaremos para obter o preço das ações.
+
+
 
 
 
