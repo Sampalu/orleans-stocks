@@ -418,34 +418,309 @@ No arquivo *Program.cs*, vamos precisar configurar os Silos adequadamente.
 
 #### Opções de Cluster
 
-A primeira coisa que vamos fazer é remover siloBuilder.UseLocalhostClustering();, porque essa configuração é utilizada apenas em ambiente local. Vamos incluir ClusterOptions:
- 
-ClusterId: Identifica o cluster Orleans. Todos os silos com o mesmo ClusterId fazem parte do mesmo cluster.
-ServiceId: Representa o serviço lógico que está sendo executado. Isso é útil para distinguir múltiplas implementações do mesmo sistema.
+A primeira coisa que vamos fazer é remover **siloBuilder.UseLocalhostClustering();**, porque essa configuração é utilizada apenas em ambiente local. Vamos incluir a configuração ***ClusterOptions***:
+
+```csharp
+siloBuilder.Configure<ClusterOptions>(options =>
+{
+    options.ClusterId = "dev";
+    options.ServiceId = "dev-enrichment-service";
+});
+```
+
+**ClusterId:** Identifica o *cluster* **Orleans**. Todos os silos com o mesmo ***ClusterId*** fazem parte do mesmo *cluster*.
+
+**ServiceId:** Representa o serviço lógico que está sendo executado. Isso é útil para distinguir múltiplas implementações do mesmo sistema.
 
 #### Configuração de Clustering com Redis
 
-O Orleans usa Redis como provedor de clustering, que é responsável por coordenar e registrar os silos no cluster.
+O **Orleans** usa **Redis** como provedor de *clustering*, que é responsável por coordenar e registrar os silos no *cluster*.
 
-Adicione o pacote Microsoft.Orleans.Clustering.Redis ao aplicativo e altere a configuração para corresponder a string de conexão do Redis da sua conta AWS.
+Adicione o pacote **Microsoft.Orleans.Clustering.Redis** ao aplicativo e altere a configuração para corresponder a *string* de conexão do **Redis** da sua conta **AWS**.
+
+```csharp
+siloBuilder.UseRedisClustering("localhost:6379,password=redispass,abortConnect=false");
+```
 
 #### Configuração de Endpoints
 
-AdvertisedIPAddress: Define o endereço IP que outros silos e clientes usarão para se conectar a este nó. Ele usa o endereço IP do contêiner.
-Configuração de Portas:
-•	A porta do Silo (comunicação entre silos) e do Gateway (comunicação entre cliente e silo) são atribuídas dinamicamente dentro de intervalos.
+```csharp
+siloBuilder.Configure<EndpointOptions>(options =>
+{
+    // since we are using awsvpc each container gets its own dns and ip
+    var ip = Dns.GetHostAddressesAsync(Dns.GetHostName()).Result.First();
+    options.AdvertisedIPAddress = ip;
 
-•	Isso é útil em ambientes como Docker ou AWS ECS, onde múltiplos contêineres compartilham a mesma máquina.
-GatewayListeningEndpoint e SiloListeningEndpoint: Configuram os pontos de escuta dos silos.
+    Random rdn = new Random();
+    int siloPort = rdn.Next(EndpointOptions.DEFAULT_SILO_PORT, 12000);
+    int gatewayPort = rdn.Next(EndpointOptions.DEFAULT_GATEWAY_PORT, 31000);
 
+    // These 2 ports will be used by a cluster
+    // for silo to silo communications
+    options.SiloPort = siloPort;
+    // Port to use for the gateway (client to silo)
+    options.GatewayPort = gatewayPort;
+    // Internal ports which you expose to docker
+    options.GatewayListeningEndpoint = new IPEndPoint(IPAddress.Any, siloPort);
+    options.SiloListeningEndpoint = new IPEndPoint(IPAddress.Any, gatewayPort);
+});
+```
 
+**AdvertisedIPAddress:** Define o endereço IP que outros silos e clientes usarão para se conectar a este nó. Ele usa o endereço IP do contêiner.
+
+#### Configuração de Portas:
+- A porta do Silo (comunicação entre silos) e do **Gateway** (comunicação entre cliente e silo) são atribuídas dinamicamente dentro de intervalos.
+- Isso é útil em ambientes como **Docker** ou **AWS ECS**, onde múltiplos contêineres compartilham a mesma máquina.
+
+**GatewayListeningEndpoint** e **SiloListeningEndpoint**: Configuram os pontos de escuta dos silos.
+
+<br>
 Veja o *Program.cs* completo:
 
 ```csharp
+using Microsoft.AspNetCore.ResponseCompression;
+using Orleans.Configuration;
+using Stocks;
+using System.Net;
 
+var builder = WebApplication.CreateBuilder();
+
+builder.Host
+        .UseOrleans(siloBuilder =>
+        {
+            siloBuilder.Configure<ClusterOptions>(options =>
+            {
+                options.ClusterId = "dev";
+                options.ServiceId = "dev-enrichment-service";
+            });
+            siloBuilder.UseRedisClustering("localhost:6379,password=redispass,abortConnect=false");
+            siloBuilder.Configure<EndpointOptions>(options =>
+            {
+                // since we are using awsvpc each container gets its own dns and ip
+                var ip = Dns.GetHostAddressesAsync(Dns.GetHostName()).Result.First();
+                options.AdvertisedIPAddress = ip;
+            
+                Random rdn = new Random();
+                int siloPort = rdn.Next(EndpointOptions.DEFAULT_SILO_PORT, 12000);
+                int gatewayPort = rdn.Next(EndpointOptions.DEFAULT_GATEWAY_PORT, 31000);
+
+                // These 2 ports will be used by a cluster
+                // for silo to silo communications
+                options.SiloPort = siloPort;
+                // Port to use for the gateway (client to silo)
+                options.GatewayPort = gatewayPort;
+                // Internal ports which you expose to docker
+                options.GatewayListeningEndpoint = new IPEndPoint(IPAddress.Any, siloPort);
+                options.SiloListeningEndpoint = new IPEndPoint(IPAddress.Any, gatewayPort);
+            });
+            siloBuilder.UseDashboard(options => { options.Port = 8081; });            
+        })    
+    .ConfigureServices(
+        services => services.AddHostedService<StocksHostedService>());
+
+var app = builder.Build();
+
+app.MapGet("/", () => "Welcome to the Stock Sample, powered by Orleans!");
+
+app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
+
+app.Run();
 ```
 
 ### Compile e publique a imagem em um registro de contêiner (ECR)
+1.	Use o comando para criar a imagem Docker:
+```bash
+docker build -t stocks-aws .
+```
+
+2.	Configure um repositório no **Amazon ECR**, via console **AWS**.
+
+3.	Faça login no **ECR** e envie sua imagem:
+```bash
+ aws ecr get-login-password --region sua-regiao | docker login --username AWS --password-stdin <seu-id-de-conta>.dkr.ecr.<sua-regiao>.amazonaws.com
+```
+```bash
+docker tag sua-aplicacao:latest <seu-id-de-conta>.dkr.ecr.<sua-regiao>.amazonaws.com/stocks-aws:latest
+```
+```bash
+docker push <seu-id-de-conta>.dkr.ecr.<sua-regiao>.amazonaws.com/stocks-aws:latest
+```
+
+### Criar Terraform
+
+Vamos utilizar o <a href="https://www.terraform.io/" target="_blank">terraform</a> para criar os recursos necessários para executar a aplicação na **AWS**.
+
+#### Criar o cluster
+
+```terraform
+resource "aws_ecs_cluster" "ecs_cluster" {
+  name = "ecs-fargate-cluster"
+}
+```
+
+#### Criar o Grupo de Segurança
+```terraform
+resource "aws_security_group" "ecs_service_sg" {
+  name        = "ecs-fargate-sg"
+  description = "Allow traffic for ECS Fargate service"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+```
+
+> Para facilitar, o grupo de segurança foi criado com todo o trafego aberto, não recomendado em ambiente de produção.
+
+#### Criar a definição da Tarefa
+```terraform
+resource "aws_ecs_task_definition" "task_definition" {
+  family                   = "ecs-fargate-task"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256" # Ajuste conforme necessário
+  memory                   = "512" # Ajuste conforme necessário
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+
+  container_definitions = jsonencode([{
+    name      = "stocks-aws"
+    image     = var.ecr_image
+    essential = true
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = "/ecs/stocks-aws"
+        "awslogs-region"        = var.region
+        "awslogs-stream-prefix" = "ecs"
+      }
+    }
+  }])
+
+  depends_on = [ 
+    aws_iam_role.ecs_task_execution_role
+  ]
+}
+``` 
+
+#### Criar o Serviço ECS
+```terraform
+resource "aws_ecs_service" "ecs_service" {
+  name            = "ecs-fargate-service"
+  cluster         = aws_ecs_cluster.ecs_cluster.id
+  task_definition = aws_ecs_task_definition.task_definition.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets         = var.subnet_ids
+    security_groups = [aws_security_group.ecs_service_sg.id]
+    assign_public_ip = true
+  }
+
+  depends_on = [ 
+    aws_ecs_cluster.ecs_cluster,
+    aws_ecs_task_definition.task_definition,
+    aws_security_group.ecs_service_sg
+  ]
+}
+``` 
+
+#### Criar as políticas de segurança
+```terraform
+resource "aws_iam_policy" "elasticache_policy" {
+  name        = "ElasticacheAccessPolicy"
+  description = "Allow access to ElastiCache resources"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid: "VisualEditor0",
+        Effect: "Allow",
+        Action: "elasticache:*",
+        Resource: "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy_attachment" "elasticache_policy_attachment" {
+  name       = "elasticache-policy-attachment"
+  roles      = [aws_iam_role.ecs_task_execution_role.name]
+  policy_arn = aws_iam_policy.elasticache_policy.arn
+
+  depends_on = [
+    aws_iam_policy.elasticache_policy,
+    aws_iam_role.ecs_task_execution_role]
+}
+
+resource "aws_iam_role" "ecs_task_execution_role" {
+  name = "ecsTaskExecutionRoleStocks"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      }
+    }]
+  })
+}
+
+resource "aws_iam_policy_attachment" "ecs_task_execution_policy" {
+  name       = "ecs-task-execution-policy"
+  roles      = [aws_iam_role.ecs_task_execution_role.name]
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+
+  depends_on = [ 
+    aws_iam_role.ecs_task_execution_role
+  ]
+}
+```
+
+#### Criar Variáveis
+```terraform
+variable "region" {
+  default = "us-east-1"
+}
+
+variable "vpc_id" {}
+
+variable "subnet_ids" {
+  type = list(string)
+  default = [ "subnet-016a0b9b578d41c29", "subnet-0f6183ddd4ce96326" ]
+}
+
+variable "ecr_image" {}
+```
+
+Pronto! A aplicação está preparada, basta executar o ***terraform*** com os comandos a seguir:
+
+Criar Plano de Execução: 
+terraform plan -var "ecr_image=<seu-id-de-conta>.dkr.ecr.<sua-regiao>.amazonaws.com/sampalu/stocks-aws:latest" -var "vpc_id=<sua-vpc>" -out plan.out
+Aplicar Plano de Execução criado: 
+terraform apply -var "ecr_image=<seu-id-de-conta>.dkr.ecr.<sua-regiao>.amazonaws.com/sampalu/stocks-aws:latest" -var "vpc_id=<sua-vpc>" plan.out
+
+Após os testes, para remover os recursos, execute o comando destroy:
+terraform destroy -var "ecr_image=<seu-id-de-conta>.dkr.ecr.<sua-regiao>.amazonaws.com/sampalu/stocks-aws:latest" -var "vpc_id=<sua-vpc>"
+
+Link do repositório com projeto completo: https://github.com/Sampalu/orleans-stocks
+
+Referências: 
+https://learn.microsoft.com/en-us/dotnet/orleans
+
 
 [Conclusão segunda parte]
 
