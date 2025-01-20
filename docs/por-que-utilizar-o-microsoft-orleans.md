@@ -350,7 +350,9 @@ Abra o navegador e acesse o endereço <a href="http://localhost:8080/health" tar
 
 Link para o repositório do projeto: <a href="https://github.com/Sampalu/orleans-stocks/tree/configuracao-localhost-teste" target="_blank">https://github.com/Sampalu/orleans-stocks/tree/configuracao-localhost-teste</a>
 
-[Conclusão primeira parte]
+## Conclusões Preliminares
+
+Ao explorar as vantagens do Microsoft Orleans e entender como ele transforma o desenvolvimento de sistemas distribuídos, ficou claro que essa tecnologia resolve problemas complexos com simplicidade e eficiência. Mas isso é apenas o começo. Na próxima parte, vamos mergulhar nos detalhes de implementação, explorando como configurar silos, trabalhar com grãos e aplicar Orleans em cenários reais, como ambientes em nuvem. Não perca essa oportunidade de levar seu conhecimento ao próximo nível!
 
 <br><br>
 ## Como utilizar o Microsoft Orleans na AWS
@@ -728,6 +730,10 @@ terraform destroy -var "ecr_image=<seu-id-de-conta>.dkr.ecr.<sua-regiao>.amazona
 <br>
 
 Link do repositório com projeto completo: https://github.com/Sampalu/orleans-stocks
+
+## Considerações Finais
+
+A adoção do **Microsoft Orleans** não é apenas uma solução técnica; é uma decisão estratégica que simplifica o desenvolvimento de sistemas distribuídos enquanto garante robustez e flexibilidade para a aplicação. Os benefícios alcançados – como maior desempenho, facilidade de manutenção e escalabilidade – mostram como a escolha de uma ferramenta pode transformar a forma como os times desenvolvem e operam aplicações complexas. Para empresas que lidam com desafios semelhantes, **Orleans** se destaca como uma solução que combina inovação e pragmatismo, permitindo enfrentar demandas crescentes com confiança. Mais do que um *framework*, **Orleans** representa um novo paradigma na construção de sistemas distribuídos modernos.
 
 ## Referências: 
 <a href="https://learn.microsoft.com/en-us/dotnet/orleans" target="_blank">https://learn.microsoft.com/en-us/dotnet/orleans</a>
