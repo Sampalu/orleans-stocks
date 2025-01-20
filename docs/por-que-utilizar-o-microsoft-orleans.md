@@ -475,6 +475,7 @@ siloBuilder.Configure<EndpointOptions>(options =>
 **GatewayListeningEndpoint** e **SiloListeningEndpoint**: Configuram os pontos de escuta dos silos.
 
 <br>
+
 Veja o *Program.cs* completo:
 
 ```csharp
@@ -550,7 +551,7 @@ docker push <seu-id-de-conta>.dkr.ecr.<sua-regiao>.amazonaws.com/stocks-aws:late
 
 Vamos utilizar o <a href="https://www.terraform.io/" target="_blank">terraform</a> para criar os recursos necessários para executar a aplicação na **AWS**.
 
-#### Criar o cluster
+#### Crie o cluster
 
 ```terraform
 resource "aws_ecs_cluster" "ecs_cluster" {
@@ -558,7 +559,7 @@ resource "aws_ecs_cluster" "ecs_cluster" {
 }
 ```
 
-#### Criar o Grupo de Segurança
+#### Crie o Grupo de Segurança
 ```terraform
 resource "aws_security_group" "ecs_service_sg" {
   name        = "ecs-fargate-sg"
@@ -583,7 +584,7 @@ resource "aws_security_group" "ecs_service_sg" {
 
 > Para facilitar, o grupo de segurança foi criado com todo o trafego aberto, não recomendado em ambiente de produção.
 
-#### Criar a definição da Tarefa
+#### Crie a definição da Tarefa
 ```terraform
 resource "aws_ecs_task_definition" "task_definition" {
   family                   = "ecs-fargate-task"
@@ -613,7 +614,7 @@ resource "aws_ecs_task_definition" "task_definition" {
 }
 ``` 
 
-#### Criar o Serviço ECS
+#### Crie o Serviço ECS
 ```terraform
 resource "aws_ecs_service" "ecs_service" {
   name            = "ecs-fargate-service"
@@ -636,7 +637,7 @@ resource "aws_ecs_service" "ecs_service" {
 }
 ``` 
 
-#### Criar as políticas de segurança
+#### Crie as políticas de segurança
 ```terraform
 resource "aws_iam_policy" "elasticache_policy" {
   name        = "ElasticacheAccessPolicy"
@@ -690,7 +691,7 @@ resource "aws_iam_policy_attachment" "ecs_task_execution_policy" {
 }
 ```
 
-#### Criar Variáveis
+#### Crie Variáveis
 ```terraform
 variable "region" {
   default = "us-east-1"
@@ -708,28 +709,28 @@ variable "ecr_image" {}
 
 Pronto! A aplicação está preparada, basta executar o ***terraform*** com os comandos a seguir:
 
-Criar Plano de Execução: 
+**Criar Plano de Execução:**
+```bash
 terraform plan -var "ecr_image=<seu-id-de-conta>.dkr.ecr.<sua-regiao>.amazonaws.com/sampalu/stocks-aws:latest" -var "vpc_id=<sua-vpc>" -out plan.out
-Aplicar Plano de Execução criado: 
-terraform apply -var "ecr_image=<seu-id-de-conta>.dkr.ecr.<sua-regiao>.amazonaws.com/sampalu/stocks-aws:latest" -var "vpc_id=<sua-vpc>" plan.out
+```
 
-Após os testes, para remover os recursos, execute o comando destroy:
+**Aplicar Plano de Execução criado:** 
+
+```bash
+terraform apply -var "ecr_image=<seu-id-de-conta>.dkr.ecr.<sua-regiao>.amazonaws.com/sampalu/stocks-aws:latest" -var "vpc_id=<sua-vpc>" plan.out
+```
+
+**Após os testes, para remover os recursos, execute o comando destroy:**
+```bash
 terraform destroy -var "ecr_image=<seu-id-de-conta>.dkr.ecr.<sua-regiao>.amazonaws.com/sampalu/stocks-aws:latest" -var "vpc_id=<sua-vpc>"
+```
+
+<br>
 
 Link do repositório com projeto completo: https://github.com/Sampalu/orleans-stocks
 
-Referências: 
-https://learn.microsoft.com/en-us/dotnet/orleans
+## Referências: 
+<a href="https://learn.microsoft.com/en-us/dotnet/orleans" target="_blank">https://learn.microsoft.com/en-us/dotnet/orleans</a>
 
 
 [Conclusão segunda parte]
-
-
-
-```csharp
-
-```
-```bash
-
-```
-![texto](./img/g "texto")
