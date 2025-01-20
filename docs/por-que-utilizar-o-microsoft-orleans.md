@@ -156,21 +156,157 @@ Vamos construir uma aplicação que busca preços de ações de um serviço remo
 
 ### Adicionar Orleans ao projeto
 
-O Orleans está disponível por meio de uma coleção de pacotes NuGet e cada um deles fornece acesso a vários recursos. Neste projeto, adicione os pacotes Microsoft.Orleans.Server e OrleansDashboard ao aplicativo:
+O **Orleans** está disponível por meio de uma coleção de pacotes ***NuGet*** e cada um deles fornece acesso a vários recursos. Neste projeto, adicione os pacotes **Microsoft.Orleans.Server** e **OrleansDashboard** ao aplicativo:
 
-1.	Clique com o botão direito do mouse no nó do projeto Stocks no gerenciador de soluções e selecione Gerenciar Pacotes NuGet.
+1.	Clique com o botão direito do mouse no nó do projeto **Stocks** no gerenciador de soluções e selecione **Gerenciar Pacotes NuGet**.
 
-2.	Na janela do gerenciador de pacotes, pesquise Orleans.
+2.	Na janela do gerenciador de pacotes, pesquise **Orleans**.
 
-3.	Escolha os pacotes Microsoft.Orleans.Server e OrleansDashboard, ambos na versão 8.2.0, nos resultados da pesquisa e selecione Instalar.
+3.	Escolha os pacotes **Microsoft.Orleans.Server** e **OrleansDashboard**, ambos na versão 8.2.0, nos resultados da pesquisa e selecione **Instalar**.
 
 
 ### Criar o Grão
 
-Grãos são os blocos de construção primitivos mais essenciais de aplicativos do Orleans. Uma granularidade é uma classe que herda da classe base Grain, que gerencia vários comportamentos internos e pontos de integração com Orleans. As granularidades devem implementar uma interface para definir o tipo de identificador da chave de granularidade.
+Grãos são os blocos de construção primitivos mais essenciais de aplicativos do **Orleans**. Uma granularidade é uma classe que herda da classe base ***Grain***, que gerencia vários comportamentos internos e pontos de integração com **Orleans**. Os grãos devem implementar uma interface para definir o tipo de identificador da chave de granularidade.
 
-No nosso caso vamos usar o IGrainWithStringKey. As granularidades do Orleans também podem usar uma interface personalizada para definir seus métodos e propriedades. Nesta interface, vamos precisar apenas de um método, o GetPrice(), que usaremos para obter o preço das ações.
+No nosso caso vamos usar o ***IGrainWithStringKey***. Os grãos do **Orleans** também podem usar uma interface personalizada para definir seus métodos e propriedades. Nesta interface, vamos precisar apenas de um método, o ***GetPrice()***, que usaremos para obter os preços das ações.
 
+1.	Crie uma interface usando o código a seguir:
+
+```csharp
+namespace Stocks.Interfaces;
+
+public interface IStockGrain : IGrainWithStringKey
+{
+    Task<string> GetPrice();
+}
+```
+
+2.	Crie uma classe usando o código a seguir. Essa classe herda da classe ***Grain*** fornecida por **Orleans** e implementa a interface ***IStockGrain***, criada anteriormente: 
+
+```csharp
+using Stocks.Interfaces;
+using System.Transactions;
+
+namespace Stocks.Grains;
+
+public sealed class StockGrain : Grain, IStockGrain
+{
+    // Request api key from here https://www.alphavantage.co/support/#api-key
+    private const string ApiKey = "KG94386YNL9JZUNW";
+    private readonly HttpClient _httpClient = new();
+
+    private string _price = null!;
+
+    public override async Task OnActivateAsync(CancellationToken cancellationToken)
+    {
+        var stock = this.GetPrimaryKeyString();
+        await UpdatePrice(stock);
+
+        this.RegisterGrainTimer(
+            UpdatePrice,
+            stock,
+            TimeSpan.FromMinutes(2),
+            TimeSpan.FromMinutes(2));
+
+        await base.OnActivateAsync(cancellationToken);
+    }
+
+    private async Task UpdatePrice(object stock)
+    {
+        var priceTask = GetPriceQuote((string)stock);
+
+        // read the results
+        _price = await priceTask;
+    }
+
+    private async Task<string> GetPriceQuote(string stock)
+    {
+        using var resp =
+            await _httpClient.GetAsync(
+                $"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={stock}&apikey={ApiKey}&datatype=csv");
+
+        return await resp.Content.ReadAsStringAsync();
+    }
+
+    public Task<string> GetPrice() => Task.FromResult(_price);
+}
+```
+ 
+> Você pode requisitar uma ***api key***, gratuitamente, para testar a aplicação, através do link <a href="https://www.alphavantage.co/support/#api-key" target="_blank">https://www.alphavantage.co/support/#api-key</a>.
+
+### Criar BackgroudService
+
+Ele será responsável por ativar os grãos. Crie uma classe usando o código a seguir:
+
+```csharp
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Stocks.Interfaces;
+
+namespace Stocks;
+
+public sealed class StocksHostedService : BackgroundService
+{
+    private readonly ILogger<StocksHostedService> _logger;
+    private readonly IClusterClient _client;
+    private readonly List<string> _symbols = new() { "MSFT", "GOOG", "AAPL", "GME", "AMZN" };
+
+    public StocksHostedService(ILogger<StocksHostedService> logger, IClusterClient client)
+    {
+        _logger = logger;
+        _client = client;
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching stock prices");
+                var tasks = new List<Task<string>>();
+
+                // Fan out calls to each of the stock grains
+                foreach (var symbol in _symbols)
+                {
+                    var stockGrain = _client.GetGrain<IStockGrain>(symbol);
+                    tasks.Add(stockGrain.GetPrice());
+                }
+
+                // Collect the results
+                await Task.WhenAll(tasks);
+
+                // Print the results
+                foreach (var task in tasks)
+                {
+                    var price = await task;
+                    _logger.LogInformation("Price is {Price}", price);
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+            }
+            catch (Exception error) when (!stoppingToken.IsCancellationRequested)
+            {
+                _logger.LogError(error, "Error fetching stock price");
+            }
+        }
+    }
+}
+```
+
+Configurar os silos
+Os silos responsáveis por armazenar e gerenciar granularidades. Um silo pode conter uma ou mais grãos. 
+O código a seguir usa uma classe ISiloBuilder para criar um cluster localhost. Este cenário usa recursos locais para desenvolvimento, mas um aplicativo de produção pode ser configurado para usar clusters e armazenamento altamente escaláveis. 
+Nota: Quando configuramos a execução da aplicação em vários silos, ou seja, vários hosts, a comunicação com os grãos ocorre como se todos estivessem disponíveis em um único processo.
+
+Abra o arquivo Program.cs e substitua o conteúdo existente pelo seguinte código:
+
+
+
+
+
+Configurar os silos
 
 
 
@@ -180,3 +316,6 @@ https://redis.io/try-free/
 
 
 
+```csharp
+
+```
