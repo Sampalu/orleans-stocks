@@ -45,7 +45,7 @@ Os grãos são as unidades fundamentais de lógica e estado no **Orleans**, repr
 
 ### Silos:
 
-Os silos são os contêineres que hospedam os grãos, proporcionando o ambiente necessário para que eles funcionem. Pense neles como os "nós" físicos ou virtuais que compõem a infraestrutura de um sistema **Orleans**.
+Os silos são os contêineres que hospedam os grãos, proporcionando o ambiente necessário para que eles funcionem. Pense neles como os "nós" físicos ou virtuais que compõem a infraestrutura de um sistema **Orleans**. 
 
 > #### Principais características do Silos: 
 >
@@ -59,7 +59,9 @@ Os silos são os contêineres que hospedam os grãos, proporcionando o ambiente 
 
 ### Relação entre Grãos e Silos:
 
-Os grãos vivem dentro dos silos. Quando um grão precisa ser chamado, o silo cuida de ativá-lo e de armazenar seu estado em memória ou persistência. Vários silos podem trabalhar juntos para distribuir a carga de trabalho e garantir a alta disponibilidade e a escalabilidade do sistema.
+Os grãos vivem dentro dos silos. Quando um grão precisa ser chamado, o silo cuida de ativá-lo e de armazenar seu estado em memória ou persistência. Vários silos podem trabalhar juntos para distribuir a carga de trabalho e garantir a alta disponibilidade e a escalabilidade do sistema. 
+
+Um grupo de silos é conhecido como um *cluster*. Você pode organizar seus dados armazenando diferentes tipos de grãos em diferentes silos. Seu aplicativo pode recuperar grãos individuais sem precisar se preocupar com os detalhes de como elas são gerenciados dentro do cluster.
 
 ![Cluster com silos (hosts) e grãos](./img/cluster-silo-grain-relationship.svg "Cluster com silos (hosts) e grãos")
 
@@ -130,6 +132,12 @@ Esta imagem ilustra o ciclo de vida de um grão no **Microsoft Orleans**. Cada g
 ## Exemplo Prático
 
 
+
+http client https://learn.microsoft.com/pt-br/dotnet/api/system.net.http.httpclient?view=net-8.0
+
+
+
+https://redis.io/try-free/
 
 
 
