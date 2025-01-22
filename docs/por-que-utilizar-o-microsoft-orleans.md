@@ -737,6 +737,3 @@ A adoção do **Microsoft Orleans** não é apenas uma solução técnica; é um
 
 ## Referências: 
 <a href="https://learn.microsoft.com/en-us/dotnet/orleans" target="_blank">https://learn.microsoft.com/en-us/dotnet/orleans</a>
-
-
-[Conclusão segunda parte]
