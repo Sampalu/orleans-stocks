@@ -1,10 +1,12 @@
 # Por que utilizar o Microsoft Orleans
 
-## Introdução
+## O problema dos sistemas distribuídos
 
-Quando temos uma API, atrás de um balanceador de carga, é possível ter diversas tarefas (**ECS tasks**) de um determinado serviço, em um *cluster* (**ECS cluster**), numa conta da **AWS**, e assim, podemos ter alta disponibilidade e escalabilidade. Outros cenários podem ser resolvidos através de utilização de **Lambda Functions**. No entanto, se tivermos um serviço do tipo *worker*, em **C#**, baseado no <a href="https://learn.microsoft.com/pt-br/dotnet/core/extensions/windows-service" target="_blank">BackgroundService</a>, que realiza determinado processamento em um intervalo de tempo, como podemos ter alta disponibilidade e escalabilidade? Se definirmos, por exemplo, 2 tarefas, na tentativa de resolver essas questões, os processamentos poderão ocorrer em duplicidade. Se criamos um mecanismo, onde mesmo que o processamento ocorra em duplicidade, o resultado não seja duplicado, não estaremos sendo eficiente no que se refere a custos e não será possível escalar horizontalmente, porque não importa a quantidade de tarefas, todas sempre vão ter a mesma carga de processamento. Se criarmos algum mecanismo para que apenas uma das tarefas realize os processamentos enquanto a outra fique em *stand by*, caso a primeira tarefa fique indisponível por qualquer motivo, de novo, vamos gastar o dobro que seria necessário, além disso não será possível escalar horizontalmente.
+Imagine o mercado financeiro: milhões de investidores e corretoras dependem de atualizações precisas e em tempo real de preços de ações para tomar decisões críticas. Cada ação, corretora ou banco é uma entidade única que precisa acessar e processar dados de mercado, gerenciar estados individuais e lidar com eventos simultâneos.
 
-Este é um dos cenários onde o **Microsoft Orleans** se mostra necessário, com esse framework é possível ter diversas instâncias de um mesmo serviço, com processamentos únicos, onde essas instâncias distribuem a carga entre si, tendo assim, uma aplicação com alta disponibilidade e escalabilidade.
+Construir um sistema que ofereça essa escalabilidade, consistência e resiliência é um desafio técnico. Ferramentas tradicionais muitas vezes exigem muito trabalho para sincronizar estados, balancear carga e lidar com falhas.
+
+É aí que entra o **Microsoft Orleans**, que simplifica a criação de sistemas distribuídos como esses, usando um modelo de atores chamado **grãos** para lidar com estados e eventos de maneira escalável.
 
 ## O que é Microsoft Orleans?
 
@@ -131,6 +133,10 @@ Esta imagem ilustra o ciclo de vida de um grão no **Microsoft Orleans**. Cada g
 <br>
 
 ## Crie seu primeiro aplicativo Orleans com o ASP.NET Core
+
+Quando temos uma API, atrás de um balanceador de carga, é possível ter diversas tarefas (**ECS tasks**) de um determinado serviço, em um *cluster* (**ECS cluster**), numa conta da **AWS**, e assim, podemos ter alta disponibilidade e escalabilidade. Outros cenários podem ser resolvidos através de utilização de **Lambda Functions**. No entanto, se tivermos um serviço do tipo *worker*, em **C#**, baseado no <a href="https://learn.microsoft.com/pt-br/dotnet/core/extensions/windows-service" target="_blank">BackgroundService</a>, que realiza determinado processamento em um intervalo de tempo, como podemos ter alta disponibilidade e escalabilidade? Se definirmos, por exemplo, 2 tarefas, na tentativa de resolver essas questões, os processamentos poderão ocorrer em duplicidade. Se criamos um mecanismo, onde mesmo que o processamento ocorra em duplicidade, o resultado não seja duplicado, não estaremos sendo eficiente no que se refere a custos e não será possível escalar horizontalmente, porque não importa a quantidade de tarefas, todas sempre vão ter a mesma carga de processamento. Se criarmos algum mecanismo para que apenas uma das tarefas realize os processamentos enquanto a outra fique em *stand by*, caso a primeira tarefa fique indisponível por qualquer motivo, de novo, vamos gastar o dobro que seria necessário, além disso não será possível escalar horizontalmente.
+
+Este é um dos cenários onde o **Microsoft Orleans** se mostra necessário, com esse framework é possível ter diversas instâncias de um mesmo serviço, com processamentos únicos, onde essas instâncias distribuem a carga entre si, tendo assim, uma aplicação com alta disponibilidade e escalabilidade.
 
 Vamos construir uma aplicação que busca preços de ações de um serviço remoto usando o <a href="https://learn.microsoft.com/pt-br/dotnet/api/system.net.http.httpclient?view=net-8.0" target="_blank">HttpClient</a>, armazena-os em cache em um grão e os exibe na tela.
 
