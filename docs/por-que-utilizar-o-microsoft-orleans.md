@@ -92,14 +92,6 @@ Um grupo de silos é conhecido como um *cluster*. Você pode organizar seus dado
 
 ![Cluster com silos (hosts) e grãos](./img/cluster-silo-grain-relationship.svg "Cluster com silos (hosts) e grãos")
 
-#### Exemplo Simples:
-
-•	**Grão:** Em uma aplicação de gerenciamento de pedidos, um grão pode representar um pedido específico, contendo detalhes como itens, status e histórico.
-
-•	**Silo:** O servidor ou cluster de servidores onde esses grãos são hospedados e gerenciados.
-
-Na parte final deste artigo aplicaremos o **MS Orleans** numa aplicação funcional.
-
 ### Ciclo de vida do grão
 
 ![Ciclo de vida do grão, desde sua ativação até a desativação](./img/grain-lifecycle.svg "Ciclo de vida do grão, desde sua ativação até a desativação")
@@ -156,6 +148,12 @@ Esta imagem ilustra o ciclo de vida de um grão no **Microsoft Orleans**. Cada g
 > Essa abordagem baseada no ciclo de vida automatiza o gerenciamento de estado e memória, facilitando a criação de aplicações distribuídas escaláveis e resilientes.
 
 <br>
+
+## O impacto do Microsoft Orleans e próximos passos
+
+No mercado financeiro, atrasos de milissegundos podem custar milhões de dólares. Ferramentas como o **Microsoft Orleans** oferecem a base para construir sistemas que não apenas atendem a essas exigências, mas também escalam sem esforço para atender à demanda crescente.
+
+Na segunda parte deste artigo, veremos como configurar um *cluster* **Orleans** na **AWS** para implementar um sistema como este, garantindo alta disponibilidade e escalabilidade global. Vamos juntos continuar essa jornada técnica?
 
 ## Crie seu primeiro aplicativo Orleans com o ASP.NET Core
 
@@ -381,9 +379,11 @@ Abra o navegador e acesse o endereço <a href="http://localhost:8080/health" tar
 
 Link para o repositório do projeto: <a href="https://github.com/Sampalu/orleans-stocks/tree/configuracao-localhost-teste" target="_blank">https://github.com/Sampalu/orleans-stocks/tree/configuracao-localhost-teste</a>
 
-## Conclusões Preliminares
+## Conclusões Preliminares: O início de uma solução
 
-Ao explorar as vantagens do Microsoft Orleans e entender como ele transforma o desenvolvimento de sistemas distribuídos, ficou claro que essa tecnologia resolve problemas complexos com simplicidade e eficiência. Mas isso é apenas o começo. Na próxima parte, vamos mergulhar nos detalhes de implementação, explorando como configurar silos, trabalhar com grãos e aplicar Orleans em cenários reais, como ambientes em nuvem. Não perca essa oportunidade de levar seu conhecimento ao próximo nível!
+Com o **Microsoft Orleans**, desenvolvedores podem superar os desafios dos sistemas distribuídos com um modelo de desenvolvimento mais simples e eficiente. Seu modelo de atores e a abstração de grãos oferecem o poder necessário para construir soluções robustas e escaláveis. 
+
+A seguir, exploraremos como o **Orleans** pode ser implantado na **AWS** e como ele resolve os desafios do mundo real, como alta disponibilidade e balanceamento de carga. Se você está buscando construir sistemas distribuídos que aproveitem o melhor do **Orleans** e da infraestrutura da **AWS**, continue conosco nessa jornada para criar soluções de alto impacto.
 
 <br><br>
 ## Como utilizar o Microsoft Orleans na AWS
