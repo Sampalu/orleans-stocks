@@ -1,30 +1,55 @@
-# Por que utilizar o Microsoft Orleans
+# Por que utilizar o Microsoft Orleans?
 
 ## O problema dos sistemas distribuídos
 
-Imagine o mercado financeiro: milhões de investidores e corretoras dependem de atualizações precisas e em tempo real de preços de ações para tomar decisões críticas. Cada ação, corretora ou banco é uma entidade única que precisa acessar e processar dados de mercado, gerenciar estados individuais e lidar com eventos simultâneos.
+Imagine que você é responsável pelo sistema de uma grande Instituição Financeira. A cada segundo, milhares de clientes acessam sua plataforma para ver os preços das ações em tempo real e tomar decisões de investimento. O sistema funciona bem na maior parte do tempo. Mas, em dias de alta volatilidade do mercado, como quando uma grande empresa anuncia resultados financeiros, o tráfego dispara e a latência nas atualizações começa a crescer. Os clientes reclamam que os preços estão desatualizados, e a credibilidade da plataforma fica em risco.
 
-Construir um sistema que ofereça essa escalabilidade, consistência e resiliência é um desafio técnico. Ferramentas tradicionais muitas vezes exigem muito trabalho para sincronizar estados, balancear carga e lidar com falhas.
-
-É aí que entra o **Microsoft Orleans**, que simplifica a criação de sistemas distribuídos como esses, usando um modelo de atores chamado **grãos** para lidar com estados e eventos de maneira escalável.
+Esse é o desafio enfrentado por empresas que lidam com ***Market Data*** em tempo real. Atualizar os preços de ações de forma escalável e consistente é uma tarefa complexa, mas essencial. O **Microsoft Orleans** oferece uma solução para esse problema, simplificando a construção de sistemas distribuídos que gerenciam estados e eventos com eficiência.
 
 ## O que é Microsoft Orleans?
 
-O **Microsoft Orleans** é um *framework* projetado para simplificar a construção de sistemas distribuídos e escaláveis, sendo especialmente útil para aplicações que precisam lidar com alta concorrência e gerenciar estado de forma eficiente. Baseado no modelo de ator virtual, o Orleans introduz o conceito de "grãos" (*grains*), que são unidades de lógica e estado, permitindo que os desenvolvedores criem aplicações distribuídas sem se preocupar diretamente com a complexidade de sincronização, localização de recursos e concorrência.
+O **Microsoft Orleans** é um *framework*, que foi criado inicialmente para atender às demandas do backend de jogos online, como o famoso *Halo*, onde milhões de jogadores interagem simultaneamente em partidas distribuídas. No entanto, sua arquitetura baseada em atores virtuais provou ser incrivelmente útil para outros cenários, como o mercado financeiro.
 
-Entre seus principais benefícios estão a escalabilidade horizontal transparente, o balanceamento dinâmico de carga e a integração com persistência de estado, o que facilita o desenvolvimento de sistemas resilientes e de alta performance. Além disso, o **Orleans** utiliza conceitos familiares da <a href="https://learn.microsoft.com/pt-br/dotnet/csharp/fundamentals/tutorials/oop" target="_blank">Programação Orientada a Objetos</a> (POO), tornando-se acessível mesmo para quem não possui experiência prévia com sistemas distribuídos.
+Em sistemas de ***Market Data***, cada ativo financeiro pode ser representado como um ator independente (um grão), que gerencia seu estado e eventos de forma isolada. Essa abordagem elimina a necessidade de sincronização manual entre processos, simplifica o gerenciamento de estados e garante que o sistema possa escalar automaticamente para lidar com picos de demanda. O **Microsoft Orleans** é uma ferramenta poderosa para quem busca criar sistemas robustos sem "reinventar a roda".
 
-Com aplicações em jogos *online*, processamento em tempo real, sistemas *IoT* e muito mais, o **Microsoft Orleans** é uma ferramenta poderosa para quem busca criar sistemas robustos sem "reinventar a roda". Essa abordagem tem atraído desenvolvedores que buscam simplicidade e produtividade, oferecendo uma alternativa moderna e eficiente para resolver desafios complexos de distribuição e escalabilidade.
+### Gerenciamento de estados
+No **Orleans**, cada ativo financeiro (como $ITUB, $AMZN ou $MSFT) pode ser representado como um grão. Um grão de ação gerencia o estado de preço atual e pode ser atualizado por eventos de mercado em tempo real. Além disso, cada corretora ou banco pode ser outro grão que consulta ou age com base nesses preços.
 
-## Criação do Microsoft Orleans
+### Alta concorrência
+O **Orleans** gerencia automaticamente a concorrência entre múltiplas atualizações ou consultas, garantindo que os dados sejam consistentes mesmo com milhões de eventos simultâneos. Por exemplo, várias corretoras podem consultar ou atualizar preços simultaneamente, sem a necessidade de gerenciar bloqueios manualmente.
 
-O **Microsoft Orleans** foi criado para atender às necessidades específicas da Microsoft na construção de sistemas distribuídos para aplicações massivamente escaláveis, como jogos online e serviços de *backend* em larga escala. Ele surgiu como uma resposta aos desafios enfrentados ao usar abordagens tradicionais de sistemas distribuídos, que muitas vezes exigem soluções customizadas e complexas para lidar com problemas de concorrência, estado distribuído e escalabilidade.
+### Escalabilidade e resiliência
+À medida que o volume de dados cresce — novos ativos, maior número de usuários ou eventos de mercado intensos — **Orleans** distribui automaticamente a carga entre os silos, ajustando o número de instâncias de acordo com a demanda.
 
-A principal inspiração por trás do **Orleans** foi o modelo de ator, um paradigma de computação distribuída em que "atores" representam unidades independentes de lógica e estado que se comunicam entre si por meio de mensagens assíncronas. Este modelo, inicialmente popularizado por *frameworks* como o *Erlang*, provou ser uma solução eficaz para sistemas distribuídos, mas a equipe do Orleans o adaptou para simplificar ainda mais o desenvolvimento, criando o conceito de ator virtual.
+**Exemplo prático: integração de Market Data**
 
-No **Orleans**, os atores são chamados de grãos (*grains*), e seu modelo elimina a necessidade de os desenvolvedores gerenciarem manualmente a ativação, a localização e a concorrência entre os atores. Cada grão é ativado automaticamente sob demanda, com seu estado gerenciado de forma transparente, enquanto o *runtime* do **Orleans** cuida de detalhes como distribuição, persistência e balanceamento de carga. Isso reduz drasticamente a complexidade do desenvolvimento e oferece uma abordagem mais acessível para criar sistemas distribuídos em larga escala.
+```csharp
+public interface IStockGrain : IGrainWithStringKey
+{
+    Task UpdatePrice(decimal newPrice);
+    Task<decimal> GetPrice();
+}
 
-Essa abordagem foi testada e refinada em aplicações de alta performance, como o backend do jogo ***Halo***, demonstrando sua eficácia no gerenciamento de milhões de jogadores simultâneos.
+public class StockGrain : Grain, IStockGrain
+{
+    private decimal _currentPrice;
+
+    public Task UpdatePrice(decimal newPrice)
+    {
+        _currentPrice = newPrice;
+        return Task.CompletedTask;
+    }
+
+    public Task<decimal> GetPrice()
+    {
+        return Task.FromResult(_currentPrice);
+    }
+}
+```
+
+Nesse exemplo, os grãos gerenciam os preços, cada ativo é representado como um grão que mantém o estado do preço e permite que ele seja atualizado e consultado de forma segura e escalável.
+
+Imagine um cenário em que preços de ações são atualizados por uma fonte externa de dados de mercado e os clientes (corretoras e bancos) consultam esses preços ou realizam ações com base neles. O **Orleans** simplifica a implementação e o gerenciamento desse sistema distribuído.
 
 ## Grãos e Silos
 
