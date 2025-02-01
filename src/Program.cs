@@ -13,7 +13,13 @@ builder.Host
                 options.ClusterId = "dev";
                 options.ServiceId = "dev-enrichment-service";
             });
-            siloBuilder.UseRedisClustering("localhost:6379,password=redispass,abortConnect=false");
+            siloBuilder.UseDynamoDBClustering(options =>
+            {
+                //options.Service = "http://localhost:4566";
+                options.Service = "us-east-1";
+                options.TableName = "dev-orleans-cluster"; // Nome customizado
+                options.CreateIfNotExists = true;
+            });
             siloBuilder.Configure<EndpointOptions>(options =>
             {
                 // since we are using awsvpc each container gets its own dns and ip

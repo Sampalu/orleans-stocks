@@ -71,32 +71,6 @@ resource "aws_security_group" "ecs_service_sg" {
   }
 }
 
-resource "aws_iam_policy" "elasticache_policy" {
-  name        = "ElasticacheAccessPolicy"
-  description = "Allow access to ElastiCache resources"
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Sid: "VisualEditor0",
-        Effect: "Allow",
-        Action: "elasticache:*",
-        Resource: "*"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_policy_attachment" "elasticache_policy_attachment" {
-  name       = "elasticache-policy-attachment"
-  roles      = [aws_iam_role.ecs_task_execution_role.name]
-  policy_arn = aws_iam_policy.elasticache_policy.arn
-
-  depends_on = [
-    aws_iam_policy.elasticache_policy,
-    aws_iam_role.ecs_task_execution_role]
-}
-
 resource "aws_iam_role" "ecs_task_execution_role" {
   name = "ecsTaskExecutionRoleStocks"
 
@@ -116,6 +90,42 @@ resource "aws_iam_policy_attachment" "ecs_task_execution_policy" {
   name       = "ecs-task-execution-policy"
   roles      = [aws_iam_role.ecs_task_execution_role.name]
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+
+  depends_on = [ 
+    aws_iam_role.ecs_task_execution_role
+  ]
+}
+
+resource "aws_iam_policy" "dynamodb_policy" {
+  name        = "ecs-dynamodb-policy"
+  description = "Policy para permitir acesso ao DynamoDB"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = [
+          "dynamodb:BatchGetItem",
+          "dynamodb:BatchWriteItem",
+          "dynamodb:DescribeTable",
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:Query",
+          "dynamodb:Scan",
+          "dynamodb:UpdateItem",
+          "dynamodb:CreateTable"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy_attachment" "ecs_dynamodb_policy_attachment" {
+  name       = "ecs-dynamodb-policy-attachment"
+  roles      = [aws_iam_role.ecs_task_execution_role.name]
+  policy_arn = aws_iam_policy.dynamodb_policy.arn
 
   depends_on = [ 
     aws_iam_role.ecs_task_execution_role
